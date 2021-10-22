@@ -15,8 +15,8 @@ var lastClicked2 = null;
 
 let fontRegular;
 function preload() {
-	allData = loadTable('RollingCredits/data/data.csv', 'csv', 'header');
-	fontRegular = loadFont('RollingCredits/assets/fonts/IBMPlexSans-Regular.ttf');
+	allData = loadTable('data/data.csv', 'csv', 'header');
+	fontRegular = loadFont('assets/fonts/IBMPlexSans-Regular.ttf');
 }
 
 function setup() {
