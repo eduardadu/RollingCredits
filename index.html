@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Rolling Credits</title>
+  <link rel="icon" href="assets/imgs/favicon.jpg" type="image" sizes="32x32">
+
+  <!-- jQuery-->
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+
+  <!-- P5.js -->
+  <script src="frameworks/p5/p5.min.js"></script>
+
+  <script src="src/data-parse/maxMins.js"></script>
+  <script src="src/settings.js"></script>
+  <script src="src/dateCalcs.js"></script>
+  <script src="src/data-parse/movies.js"></script>
+  <script src="src/data-parse/loadMovies.js"></script>
+  <script src="src/dividers.js"></script>
+  <script src="src/drawZones.js"></script>
+  <script src="src/canvas.js"></script>
+  <script src="src/canvasClassZone.js"></script>
+  <script src="src/goTo.js"></script>
+  <script src="src/zooms.js"></script>
+  <script src="src/canvasDrawingFunctions.js"></script>
+  <script src="src/data-parse/fillZones.js"></script>
+  <script src="src/menuInteractions.js"></script>
+  <script src="src/labelsSvg.js"></script>
+  <script src="src/labels.js"></script>
+  <script src="src/filters.js"></script>
+  <script src="src/aboutHandler.js"></script>
+
+  <!-- Styling and fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,600;0,700;1,100;1,200;1,300;1,400;1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="bodycontainer">
+    <div class="centered">
+      <div class="title">Rolling Credits</div>
+      <div class="bar" id="timeDivisons">
+        <div class="ind selected" id="yB">Years</div>
+        <div class="ind" id="mB">Months</div>
+        <div class="ind" id="dB">Days</div>
+        <div class="ind" id="movB">Movies</div>
+      </div>
+
+      <div class="bar" id="go_to_nav">
+        <div class="ind">
+          <svg id="arrowL" class="arrow" style="transform: rotate(180deg)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black" width="24px" height="24px"><path d="M5.88 4.12L13.76 12l-7.88 7.88L8 22l10-10L8 2z"/><path d="M0 0h24v24H0z" fill="none"/></svg>
+        </div>
+        <div id="go_to_date">
+          <div id="go_to_day">
+            <form onsubmit="return false">
+              <input type="date" min="1913-11-04" max="2020-07-02">
+            </form>
+          </div>
+
+          <div id="go_to_month">
+            <form onsubmit="return false">
+              <input type="month"  min="1913-11" max="2020-07">
+            </form>
+          </div>
+
+          <div id="go_to_year">
+            <form onsubmit="return false">
+              <input type="number" min="1913" max="2020">
+            </form>
+          </div>
+
+          <div id="go_to_movie">
+            <form onsubmit="return false">
+              <input type="text">
+            </form>
+          </div>
+
+        </div>
+        <div class="ind">
+          <svg id="arrowR" class="arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black" width="24px" height="24px"><path d="M5.88 4.12L13.76 12l-7.88 7.88L8 22l10-10L8 2z"/><path d="M0 0h24v24H0z" fill="none"/></svg>
+        </div>
+      </div>
+    </div>
+    <div id="zooms" class="noselect">
+      <span>
+
+        <svg class="zoom_button" id="resetZoom" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+        <svg class="zoom_button" id="zoom_out" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14zM7 9h5v1H7z"/></svg>
+
+        <svg class="zoom_button" id="zoom_in" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/><path d="M12 10h-2v2H9v-2H7V9h2V7h1v2h2v1z"/>
+        </svg>
+        <svg id="rotateZoom" class="zoom_button" xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" viewBox="0 0 24 24" fill="black" width="18px" height="18px">
+          <rect fill="none" height="24" width="24"/>
+          <polygon points="21,11 21,3 13,3 16.29,6.29 6.29,16.29 3,13 3,21 11,21 7.71,17.71 17.71,7.71"/>
+        </svg>
+      </span>
+    </div>
+  </div>
+
+
+  <!------------------------------------------------>
+
+  <div class="sidebar" id="sideO">
+    <svg id="filtersclose" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/><path d="M0 0h24v24H0z" fill="none"/></svg>
+
+
+    <div class="sideInd">
+      <div class="mainTitle">Display</div>
+      <div class="options" id="display_container_top">
+        <div class="optColumn">
+          <form id="display_selector_left">
+            <input class="custom_box" type="checkbox" id="budgetCheck" name="budget" value="Budget" checked>
+            <label class="noselect" for="budgetCheck">Budget</label><br>
+            <input class="custom_box" type="checkbox" id="revenueCheck" name="revenue" value="Revenue" checked>
+            <label class="noselect" for="revenueCheck">Revenue</label><br>
+          </form>
+        </div>
+        <div class="optColumn">
+          <form id="display_selector_right">
+            <input class="custom_box" type="checkbox" id="ProLossCheck" name="profit" value="Profit">
+            <label class="noselect" for="ProLossCheck">Profit/Loss</label><br>
+          </form>
+        </div>
+      </div>
+      <div class="line"></div>
+      <div class="options" id="display_container_bottom">
+        <div class="optColumn">
+          <form id="isRoles">
+            <input class="custom_box" type="checkbox" id="rolesCheck" name="roles" value="Roles" checked>
+            <label class="noselect" for="rolesCheck">Roles</label><br>
+          </form>
+          <form id="roles_selector">
+            <input class="genre_box" type="checkbox" id="castCheck" name="castCheck" value="castCheck" checked>
+            <label class="noselect" for="castCheck">Cast</label>
+            <input class="genre_box" type="checkbox" id="crewCheck" name="crewCheck" value="crewCheck" checked>
+            <label class="noselect" for="crewCheck">Crew</label>
+          </form>
+        </div>
+        <div class="optColumn">
+          <form id="isGender">
+            <input class="custom_box" type="checkbox" id="genderCheck" name="gender" value="Gender">
+            <label class="noselect" for="genderCheck">Gender</label><br>
+          </form>
+          <form id="gender_selector" style="visibility: hidden; pointer-events: none">
+            <input class="genre_box" type="checkbox" id="maleCheck" name="maleCheck" value="maleCheck" checked>
+            <label class="noselect" for="maleCheck">Male</label>
+            <input class="genre_box" type="checkbox" id="femaleCheck" name="femaleCheck" value="femaleCheck" checked>
+            <label class="noselect" for="femaleCheck">Female</label>
+            <input class="genre_box" type="checkbox" id="unknownCheck" name="unknownCheck" value="unknownCheck" checked>
+            <label class="noselect" for="unknownCheck">Unknown</label>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="sideInd">
+      <div class="mainTitle">Departaments</div>
+      <div id="departament_container">
+        <form id="departament_selector">
+          <input class="genre_box" id="Art" type="checkbox" name="Art" value="Art" checked>
+          <label class="noselect" for="Art">Art</label>
+          <input class="genre_box" id="Camera" type="checkbox" name="Camera" value="Camera" checked>
+          <label class="noselect" for="Camera">Camera</label>
+          <input class="genre_box" id="Costume & Make-Up" type="checkbox" name="Costume & Make-Up" value="Costume & Make-Up" checked>
+          <label class="noselect" for="Costume & Make-Up">Costume & Make-Up</label>
+          <input class="genre_box" id="Crew" type="checkbox" name="Crew" value="Crew" checked>
+          <label class="noselect" for="Crew">Crew</label>
+          <input class="genre_box" id="Directing" type="checkbox" name="Directing" value="Directing" checked>
+          <label class="noselect" for="Directing">Directing</label>
+          <input class="genre_box" id="Editing" type="checkbox" name="Editing" value="Editing" checked>
+          <label class="noselect" for="Editing">Editing</label>
+          <input class="genre_box" id="Lighting" type="checkbox" name="Lighting" value="Lighting" checked>
+          <label class="noselect" for="Lighting">Lighting</label>
+          <input class="genre_box" id="Production" type="checkbox" name="Production" value="Production" checked>
+          <label class="noselect" for="Production">Production</label>
+          <input class="genre_box" id="Sound" type="checkbox" name="Sound" value="Sound" checked>
+          <label class="noselect" for="Sound">Sound</label>
+          <input class="genre_box" id="Visual Effects" type="checkbox" name="Visual Effects" value="Visual Effects" checked>
+          <label class="noselect" for="Visual Effects">Visual Effects</label>
+          <input class="genre_box" id="Writing" type="checkbox" name="Writing" value="Writing" checked>
+          <label class="noselect" for="Writing">Writing</label>
+        </form>
+        <div><span id="derps_show_all">Show All</span><span id="derps_hide_all">Hide All</span></div>
+      </div>
+    </div>
+
+    <div class="sideInd">
+      <div id="aboutPage" class="mainTitle">
+        About
+      </div>
+    </div>
+
+    <div class="sideInd">
+      <div id="thanksTMDB">
+        <p>Film data from TMDb.</p>
+        <a href="https://developers.themoviedb.org/3/getting-started/introduction" target="_blank"><img src="assets/imgs/blue_long_2-9665a76b1ae401a510ec1e0ca40ddcb3b0cfe45f1d51b77a308fea0845885648.svg"></a>
+      </div>
+    </div>
+  </div>
+
+  <!------------------------------------------------>
+  <div class="subtitle" >
+
+  <!--  <div class="centered subCont" id="subIntro">
+      Welcome! <br>This is a visualization information on the evolution of cinema industry.
+    </div> -->
+
+    <div class="centered subCont" id="subClicks">
+      <div class="sub right" id="subright">
+        <div class="maintitle" id="titulo1"></div>
+        <div class="subline" > <span id="Bud1">Budget </span><span class="subDin" id="subBudget1"></span><span id="dinBud1"> </span> </div>
+        <div class="subline" > <span id="Rev1">Revenue </span><span class="subDin" id="subRevenue1"></span><span id="dinRev1"> </span> </div>
+        <div class="maintitle" id="people1"></div>
+        <div class="subline" > <span class="subDin" id="subActors1"></span><span id="dinAct1"> </span> </div>
+        <div class="subline" > <span class="subDin" id="subCrew1"></span><span id="dinCrew1"> </span> </div>
+        <div class="subline" > <span class="subDin" id="subExtra1"></span><span id="dinExtra1"> </span> </div>
+      </div>
+
+      <svg id="svgleft" width="80" height="150" viewBox="-150 -200 400 400" preserveAspectRatio="xMidYMid meet">
+        <path id="left_Budget" d="M 40 -100 h 40 v 100 h -80 v -100 Z" fill="#A7A7A7"/>
+        <path id="left_Revenue" d="M 20 -200 h 40 v 200 h -40 v -200 Z" fill="#EE6E76"/>
+        <path id="left_Cast" d="M 40 0 h 40 v 100 h -80 v -100 Z" fill="#FAC17E"/>
+        <path id="left_Crew" d="M 40 100 h 40 v 100 h -80 v -100 Z" fill="#BE96FF"/>
+        <ellipse id="left_Num" cx="40" cy="0" rx="20" ry="20" style="fill:#434343;" />
+      </svg>
+
+
+      <div class="lineblack" id="lineblack"></div>
+
+      <svg id="svgright" width="80" height="150" viewBox="-150 -200 400 400" preserveAspectRatio="xMidYMid meet" transform="scale(-1,1)">
+        <path id="right_Budget" d="M 40 -100 h 40 v 100 h -80 v -100 Z" fill="#A7A7A7"/>
+        <path id="right_Revenue" d="M 20 -200 h 40 v 200 h -40 v -200 Z" fill="#EE6E76"/>
+        <path id="right_Cast" d="M 40 0 h 40 v 100 h -80 v -100 Z" fill="#FAC17E"/>
+        <path id="right_Crew" d="M 40 100 h 40 v 100 h -80 v -100 Z" fill="#BE96FF"/>
+        <ellipse id="right_Num" cx="40" cy="0" rx="20" ry="20" style="fill:#434343;" />
+      </svg>
+
+
+      <div class="sub left" id="subleft" >
+        <div class="maintitle" id="titulo2"></div>
+        <div class="subline" > <span id="Bud2">Budget </span><span class="subDin" id="subBudget2"></span><span id="dinBud2"> </span> </div>
+        <div class="subline" > <span id="Rev2">Revenue </span><span class="subDin" id="subRevenue2"></span><span id="dinRev2"> </span> </div>
+        <div class="maintitle" id="people2"></div>
+        <div class="subline" > <span class="subDin" id="subActors2"></span><span id="dinAct2"> </span> </div>
+        <div class="subline" > <span class="subDin" id="subCrew2"></span><span id="dinCrew2"></span> </div>
+        <div class="subline" > <span class="subDin" id="subExtra2"></span><span id="dinExtra2"> </span> </div>
+      </div>
+    </div>
+
+    <!------------------------------------------------>
+
+
+
+    <div class="centered subCont" id="subHovers">
+      <div class="sub right" id="subHoverR">
+        <div class="maintitle"><span id="titulo1H"></div>
+          <div class="subline" > <span id="subRevH1">Revenue </span><span class="subDin" id="subRevenueH"></span><span id="subRevH2"> dollars</span> </div>
+          <div class="subline" > <span id="subBudgetH1">Budget </span><span class="subDin" id="subBudgetH"></span><span id="subBudgetH2"> dollars</span> </div>
+          <div class="subline"> <span></span><span class="subDin"></span><span > &nbsp </span> </div>
+        </div>
+
+        <div class="lineblack" id="lineblackH"></div>
+
+        <div class="sub left" id="subHoverL" >
+          <div class="maintitle"><span id="titulo2H"></span> <span id="dinTitulo2H">people</span></div>
+          <div class="subline" > <span></span><span class="subDin" id="subCastH"></span><span id="dinCastH"> actors</span> </div>
+          <div class="subline" > <span></span><span class="subDin" id="subCrewH"></span><span id="dinCrewH"> crew members</span> </div>
+          <div class="subline" > <span></span><span class="subDin" id="subExtraH"></span><span id="dinExtraH"> crew members</span> </div>
+        </div>
+      </div>
+
+
+      <!------------------------------------------------>
+      <div class="centered">
+        <svg id="subclose" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/><path d="M0 0h24v24H0z" fill="none"/></svg>
+      </div>
+    </div>
+
+    <div id="labels">
+      <div class="single_label" id="label_numMovies">
+        <div class="label_desc">N. Movies</div>
+        <div class="label_rect"></div>
+      </div>
+      <div class="single_label" id="label_budget">
+        <div class="label_desc">Budget</div>
+        <div class="label_rect"></div>
+      </div>
+      <div class="single_label" id="label_revenue">
+        <div class="label_desc">Revenue</div>
+        <div class="label_rect"></div>
+      </div>
+      <div class="single_label" id="label_profit">
+        <div class="label_desc">Profit</div>
+        <div class="label_rect"></div>
+      </div>
+      <div class="single_label" id="label_loss">
+        <div class="label_desc">Loss</div>
+        <div class="label_rect"></div>
+      </div>
+      <div class="single_label" id="label_cast">
+        <div class="label_desc">Cast</div>
+        <div class="label_rect"></div>
+      </div>
+      <div class="single_label" id="label_crew">
+        <div class="label_desc">Crew</div>
+        <div class="label_rect"></div>
+      </div>
+      <div class="single_label" id="label_female">
+        <div class="label_desc">Female</div>
+        <div class="label_rect"></div>
+      </div>
+      <div class="single_label" id="label_male">
+        <div class="label_desc">Male</div>
+        <div class="label_rect"></div>
+      </div>
+      <div class="single_label" id="label_unknown">
+        <div class="label_desc">Unknown</div>
+        <div class="label_rect"></div>
+      </div>
+    </div>
+
+    <div id="filters">
+      Filters
+    </div>
+
+    <div id="aboutCont">
+      <div id="closeA">
+        <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M22 1L1 22" stroke="black" stroke-width="2"/>
+          <path d="M22 22L1 0.999999" stroke="black" stroke-width="2"/>
+        </svg>
+      </div>
+      <p id="about_title">About the Project</p>
+
+      <div id="aboutTextCont">
+        <span>
+          <p>
+            This project intent is to explore and visualize how cinema, as an industry, has evolved over the years, with a focus on how human and financial resources played a roll in its development and popularity.
+            <br> It was developed for the Information Visualization subject of the Master's Degree in Design and Multimedia of the University of Coimbra, with the orientation of professor Penousal Machado and Catarina Maçãs.
+             Made by André Santos and Eduarda Duarte. </p>
+          <p>
+            All the movie data was gathered from <a id="TMDB_link" href="https://www.themoviedb.org/" target="_blank">theMovieDB.org</a> using their API.
+          </p>
+          <p style="display: inline-block" id="goBackYo">Back to the project</p>
+        </span>
+      </div>
+    </div>
+    <div id="loading">
+      <div id="centergoddamnit">
+        <div id="load_title">Rolling Credits</div>
+        <img src="assets/imgs/load.gif">
+        <div id="thisaintitchief">Loading...</div>
+        <div>
+        </div>
+
+      </body>
+      </html>
